@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Login existing user",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "action": "login",
+        "email": "jobseeker@test.com"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "id": "number",
+        "email": "string",
+        "role": "string"
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}
