@@ -2,215 +2,171 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
-
-type UserRole = 'guest' | 'jobseeker' | 'employer' | 'admin';
+import { useToast } from '@/hooks/use-toast';
 
 interface LandingPageProps {
-  onLogin: (role: UserRole) => void;
+  onLogin: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  onShowRegistration: () => void;
 }
 
-const LandingPage = ({ onLogin }: LandingPageProps) => {
+const LandingPage = ({ onLogin, onShowRegistration }: LandingPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [loginEmail, setLoginEmail] = useState('');
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    const result = await onLogin(loginEmail, loginPassword);
+
+    if (result.success) {
+      toast({ title: 'Успешно!', description: 'Вы вошли в систему' });
+      setShowLoginModal(false);
+    } else {
+      toast({ 
+        title: 'Ошибка', 
+        description: result.error || 'Неверные учетные данные', 
+        variant: 'destructive' 
+      });
+    }
+
+    setLoading(false);
+  };
 
   const categories = [
-    { name: 'Разработка сайтов', icon: 'Code2', color: 'bg-blue-50 text-blue-600' },
-    { name: 'Мобильные приложения', icon: 'Smartphone', color: 'bg-purple-50 text-purple-600' },
-    { name: 'Дизайн и графика', icon: 'Palette', color: 'bg-pink-50 text-pink-600' },
-    { name: 'Тексты и переводы', icon: 'FileText', color: 'bg-orange-50 text-orange-600' },
-    { name: 'SEO и маркетинг', icon: 'TrendingUp', color: 'bg-green-50 text-green-600' },
-    { name: 'Видео и анимация', icon: 'Video', color: 'bg-red-50 text-red-600' },
-    { name: 'Бизнес-услуги', icon: 'Briefcase', color: 'bg-indigo-50 text-indigo-600' },
-    { name: 'Обучение', icon: 'GraduationCap', color: 'bg-yellow-50 text-yellow-600' },
-  ];
-
-  const tasks = [
-    {
-      id: 1,
-      title: 'Нужен лендинг для стартапа',
-      budget: '25 000 ₽',
-      responses: 12,
-      category: 'Разработка',
-      timeAgo: '2 часа назад',
-      description: 'Создать современный лендинг для SaaS продукта. Дизайн готов в Figma.',
-    },
-    {
-      id: 2,
-      title: 'Логотип и фирменный стиль',
-      budget: '15 000 ₽',
-      responses: 8,
-      category: 'Дизайн',
-      timeAgo: '4 часа назад',
-      description: 'Разработка логотипа и брендбука для кофейни.',
-    },
-    {
-      id: 3,
-      title: 'SEO продвижение интернет-магазина',
-      budget: 'от 30 000 ₽/мес',
-      responses: 15,
-      category: 'Маркетинг',
-      timeAgo: '1 день назад',
-      description: 'Комплексное SEO продвижение магазина одежды.',
-    },
-    {
-      id: 4,
-      title: 'Написать статьи для блога',
-      budget: '500 ₽/статья',
-      responses: 23,
-      category: 'Копирайтинг',
-      timeAgo: '3 часа назад',
-      description: 'Нужно 10 статей по IT-тематике, каждая 3000 знаков.',
-    },
+    { name: 'IT и разработка', icon: 'Code2', color: 'bg-blue-50 text-blue-600', count: 1240 },
+    { name: 'Дизайн', icon: 'Palette', color: 'bg-pink-50 text-pink-600', count: 856 },
+    { name: 'Маркетинг', icon: 'TrendingUp', color: 'bg-green-50 text-green-600', count: 642 },
+    { name: 'Продажи', icon: 'ShoppingCart', color: 'bg-purple-50 text-purple-600', count: 523 },
+    { name: 'Финансы', icon: 'DollarSign', color: 'bg-yellow-50 text-yellow-600', count: 412 },
+    { name: 'HR и рекрутинг', icon: 'Users', color: 'bg-indigo-50 text-indigo-600', count: 318 },
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm sticky top-0 z-50">
-        <div className="container mx-auto px-4 py-3">
+        <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-8">
-              <div className="flex items-center gap-2">
-                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
-                  <Icon name="Zap" size={24} className="text-white" />
-                </div>
-                <h1 className="text-2xl font-bold text-gray-900">TaskHub</h1>
+            <div className="flex items-center gap-2">
+              <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                <Icon name="Briefcase" size={24} className="text-white" />
               </div>
-              
-              <nav className="hidden md:flex items-center gap-6">
-                <a href="#" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
-                  Найти исполнителя
-                </a>
-                <a href="#" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
-                  Найти заказы
-                </a>
-                <a href="#" className="text-sm font-medium text-gray-700 hover:text-primary transition-colors">
-                  Как это работает
-                </a>
-              </nav>
+              <h1 className="text-2xl font-bold text-gray-900">JobPortal</h1>
             </div>
 
             <div className="flex items-center gap-3">
-              <Button variant="ghost" onClick={() => onLogin('jobseeker')} className="text-gray-700">
-                Войти
-              </Button>
-              <Button onClick={() => onLogin('employer')} className="bg-primary hover:bg-primary/90">
-                Разместить задание
+              <Dialog open={showLoginModal} onOpenChange={setShowLoginModal}>
+                <DialogTrigger asChild>
+                  <Button variant="outline">
+                    <Icon name="LogIn" size={18} className="mr-2" />
+                    Войти
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Вход в систему</DialogTitle>
+                  </DialogHeader>
+                  <form onSubmit={handleLogin} className="space-y-4">
+                    <div>
+                      <Label htmlFor="email">Email</Label>
+                      <Input
+                        id="email"
+                        type="email"
+                        value={loginEmail}
+                        onChange={(e) => setLoginEmail(e.target.value)}
+                        placeholder="your@email.com"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="password">Пароль</Label>
+                      <Input
+                        id="password"
+                        type="password"
+                        value={loginPassword}
+                        onChange={(e) => setLoginPassword(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="text-sm text-gray-500">
+                      Тестовые аккаунты: employer@test.com, jobseeker@test.com, admin@test.com
+                    </div>
+                    <Button type="submit" disabled={loading} className="w-full bg-primary hover:bg-primary/90">
+                      {loading ? 'Вход...' : 'Войти'}
+                    </Button>
+                  </form>
+                </DialogContent>
+              </Dialog>
+
+              <Button onClick={onShowRegistration} className="bg-primary hover:bg-primary/90">
+                <Icon name="UserPlus" size={18} className="mr-2" />
+                Регистрация
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <section className="bg-gradient-to-br from-primary/10 via-white to-primary/5 py-16">
-        <div className="container mx-auto px-4">
-          <div className="max-w-4xl mx-auto text-center mb-12">
-            <h2 className="text-5xl font-bold mb-4 text-gray-900">
-              Найдём исполнителя для любой задачи
-            </h2>
-            <p className="text-xl text-gray-600 mb-8">
-              500 000+ специалистов готовы помочь с вашим проектом
-            </p>
-            
-            <div className="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
-              <div className="flex gap-3 mb-4">
-                <div className="relative flex-1">
-                  <Icon 
-                    name="Search" 
-                    size={20} 
-                    className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" 
-                  />
-                  <Input
-                    placeholder="Что нужно сделать? Например: Создать сайт"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-12 h-14 text-base border-gray-200 focus:border-primary"
-                  />
-                </div>
-                <Button size="lg" className="h-14 px-8 bg-primary hover:bg-primary/90">
-                  Найти
-                </Button>
-              </div>
-              <div className="flex flex-wrap gap-2 justify-center">
-                <span className="text-sm text-gray-500">Популярные:</span>
-                {['Создать сайт', 'Дизайн логотипа', 'Написать текст', 'Настроить рекламу'].map((tag) => (
-                  <button
-                    key={tag}
-                    className="text-sm px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded-full text-gray-700 transition-colors"
-                  >
-                    {tag}
-                  </button>
-                ))}
-              </div>
+      <section className="bg-gradient-to-r from-primary to-accent text-white py-20">
+        <div className="container mx-auto px-4 text-center">
+          <h2 className="text-5xl font-bold mb-6">Найдите работу мечты или лучших специалистов</h2>
+          <p className="text-xl mb-8 text-white/90">
+            Тысячи вакансий от ведущих компаний. Быстро, удобно, эффективно.
+          </p>
+          
+          <div className="max-w-3xl mx-auto bg-white rounded-lg p-3 shadow-xl">
+            <div className="flex gap-2">
+              <Input
+                placeholder="Должность, навык или компания..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 text-gray-900 border-0 focus-visible:ring-0"
+              />
+              <Button size="lg" className="bg-primary hover:bg-primary/90">
+                <Icon name="Search" size={20} className="mr-2" />
+                Искать
+              </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 max-w-6xl mx-auto">
-            {categories.map((category) => (
-              <Card
-                key={category.name}
-                className="p-5 hover:shadow-lg transition-all cursor-pointer group border-gray-200"
-              >
-                <div className="flex flex-col items-center text-center">
-                  <div className={`w-14 h-14 ${category.color} rounded-xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform`}>
-                    <Icon name={category.icon as any} size={28} />
-                  </div>
-                  <h3 className="font-medium text-sm text-gray-900">{category.name}</h3>
-                </div>
-              </Card>
-            ))}
+          <div className="mt-8 flex items-center justify-center gap-8 text-white/90">
+            <div className="flex items-center gap-2">
+              <Icon name="Briefcase" size={20} />
+              <span>1000+ вакансий</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Icon name="Building2" size={20} />
+              <span>500+ компаний</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Icon name="Users" size={20} />
+              <span>10,000+ соискателей</span>
+            </div>
           </div>
         </div>
       </section>
 
       <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h3 className="text-3xl font-bold text-gray-900 mb-2">
-                Актуальные задания
-              </h3>
-              <p className="text-gray-600">
-                Новые заказы от клиентов каждый день
-              </p>
-            </div>
-            <Button variant="outline" className="border-gray-300">
-              Все задания
-              <Icon name="ArrowRight" size={16} className="ml-2" />
-            </Button>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-6 max-w-6xl mx-auto">
-            {tasks.map((task) => (
-              <Card key={task.id} className="p-6 hover:shadow-lg transition-all cursor-pointer border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                    {task.category}
-                  </Badge>
-                  <span className="text-sm text-gray-500">{task.timeAgo}</span>
+          <h3 className="text-3xl font-bold mb-8 text-center">Популярные категории</h3>
+          <div className="grid md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {categories.map((category) => (
+              <Card 
+                key={category.name}
+                className="p-6 text-center hover:shadow-lg transition-all cursor-pointer group"
+              >
+                <div className={`w-14 h-14 ${category.color} rounded-lg mx-auto mb-4 flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                  <Icon name={category.icon as any} size={28} />
                 </div>
-                
-                <h4 className="text-xl font-bold mb-2 text-gray-900 hover:text-primary transition-colors">
-                  {task.title}
-                </h4>
-                <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                  {task.description}
-                </p>
-
-                <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="font-bold text-lg text-primary">
-                      {task.budget}
-                    </div>
-                    <div className="flex items-center gap-1 text-sm text-gray-500">
-                      <Icon name="MessageSquare" size={16} />
-                      {task.responses} откликов
-                    </div>
-                  </div>
-                  <Button size="sm" variant="outline" className="border-primary text-primary hover:bg-primary hover:text-white">
-                    Откликнуться
-                  </Button>
-                </div>
+                <h4 className="font-semibold mb-2">{category.name}</h4>
+                <p className="text-sm text-gray-500">{category.count} вакансий</p>
               </Card>
             ))}
           </div>
@@ -219,161 +175,154 @@ const LandingPage = ({ onLogin }: LandingPageProps) => {
 
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="max-w-5xl mx-auto">
-            <h3 className="text-3xl font-bold text-center mb-12 text-gray-900">
-              Как это работает
-            </h3>
+          <div className="text-center mb-12">
+            <h3 className="text-3xl font-bold mb-4">Как это работает?</h3>
+            <p className="text-gray-600">Найдите работу мечты за 3 простых шага</p>
+          </div>
 
-            <div className="grid md:grid-cols-2 gap-8">
-              <Card className="p-8 border-2 border-primary/20">
-                <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center mb-4">
-                  <Icon name="Users" size={24} className="text-white" />
-                </div>
-                <h4 className="text-2xl font-bold mb-4 text-gray-900">Для заказчиков</h4>
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 text-primary font-bold">
-                      1
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Опишите задачу</h5>
-                      <p className="text-sm text-gray-600">Расскажите, что нужно сделать и какой у вас бюджет</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 text-primary font-bold">
-                      2
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Получите отклики</h5>
-                      <p className="text-sm text-gray-600">Исполнители откликнутся на ваше задание</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center flex-shrink-0 text-primary font-bold">
-                      3
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Выберите лучшего</h5>
-                      <p className="text-sm text-gray-600">Сравните предложения и выберите специалиста</p>
-                    </div>
-                  </div>
-                </div>
-                <Button className="w-full mt-6 bg-primary hover:bg-primary/90" onClick={() => onLogin('employer')}>
-                  Разместить задание
-                </Button>
-              </Card>
+          <div className="grid md:grid-cols-3 gap-8">
+            <Card className="p-8 text-center">
+              <div className="w-16 h-16 bg-primary/10 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <Icon name="UserPlus" size={32} className="text-primary" />
+              </div>
+              <h4 className="text-xl font-bold mb-3">1. Зарегистрируйтесь</h4>
+              <p className="text-gray-600">
+                Создайте профиль, загрузите резюме и укажите свои навыки
+              </p>
+            </Card>
 
-              <Card className="p-8 border-2 border-accent/20">
-                <div className="w-12 h-12 bg-accent rounded-xl flex items-center justify-center mb-4">
-                  <Icon name="Briefcase" size={24} className="text-white" />
+            <Card className="p-8 text-center">
+              <div className="w-16 h-16 bg-accent/10 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <Icon name="Search" size={32} className="text-accent" />
+              </div>
+              <h4 className="text-xl font-bold mb-3">2. Найдите вакансию</h4>
+              <p className="text-gray-600">
+                Используйте расширенный поиск по навыкам, локации и зарплате
+              </p>
+            </Card>
+
+            <Card className="p-8 text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full mx-auto mb-6 flex items-center justify-center">
+                <Icon name="CheckCircle2" size={32} className="text-green-600" />
+              </div>
+              <h4 className="text-xl font-bold mb-3">3. Получите предложение</h4>
+              <p className="text-gray-600">
+                Откликайтесь на вакансии и получайте приглашения на интервью
+              </p>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="container mx-auto px-4">
+          <h3 className="text-3xl font-bold mb-8 text-center">Для работодателей</h3>
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="Users" size={24} className="text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold mb-2">База талантливых специалистов</h4>
+                    <p className="text-gray-600">Доступ к тысячам проверенных кандидатов с актуальными резюме</p>
+                  </div>
                 </div>
-                <h4 className="text-2xl font-bold mb-4 text-gray-900">Для исполнителей</h4>
-                <div className="space-y-4">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 text-accent font-bold">
-                      1
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Найдите задание</h5>
-                      <p className="text-sm text-gray-600">Выберите заказ, который вам подходит</p>
-                    </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="Filter" size={24} className="text-accent" />
                   </div>
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 text-accent font-bold">
-                      2
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Откликнитесь</h5>
-                      <p className="text-sm text-gray-600">Предложите свои условия и цену</p>
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 text-accent font-bold">
-                      3
-                    </div>
-                    <div>
-                      <h5 className="font-semibold mb-1 text-gray-900">Выполните работу</h5>
-                      <p className="text-sm text-gray-600">Сделайте качественно и получите оплату</p>
-                    </div>
+                  <div>
+                    <h4 className="text-lg font-bold mb-2">Умный поиск резюме</h4>
+                    <p className="text-gray-600">Найдите идеального кандидата по навыкам, опыту и локации</p>
                   </div>
                 </div>
-                <Button className="w-full mt-6 bg-accent hover:bg-accent/90" onClick={() => onLogin('jobseeker')}>
-                  Найти заказы
-                </Button>
-              </Card>
+
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Icon name="Calendar" size={24} className="text-green-600" />
+                  </div>
+                  <div>
+                    <h4 className="text-lg font-bold mb-2">Управление интервью</h4>
+                    <p className="text-gray-600">Планируйте встречи и отправляйте приглашения прямо из системы</p>
+                  </div>
+                </div>
+              </div>
+
+              <Button onClick={onShowRegistration} size="lg" className="mt-8 bg-primary hover:bg-primary/90">
+                Начать поиск сотрудников
+              </Button>
+            </div>
+
+            <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-2xl p-8">
+              <div className="bg-white rounded-lg p-6 shadow-lg">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center">
+                    <Icon name="TrendingUp" size={24} className="text-white" />
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold">2,500+</div>
+                    <div className="text-sm text-gray-500">Успешных наймов</div>
+                  </div>
+                </div>
+                <div className="border-t pt-4">
+                  <p className="text-sm text-gray-600">
+                    Средний срок закрытия вакансии: <span className="font-bold">7 дней</span>
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="py-16 bg-primary text-white">
-        <div className="container mx-auto px-4 text-center">
-          <h3 className="text-3xl font-bold mb-4">Готовы начать?</h3>
-          <p className="text-xl mb-8 text-white/90">
-            Присоединяйтесь к тысячам заказчиков и исполнителей
-          </p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              size="lg" 
-              className="bg-white text-primary hover:bg-gray-100"
-              onClick={() => onLogin('employer')}
-            >
-              Разместить задание
-            </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              className="border-white text-white hover:bg-white/10"
-              onClick={() => onLogin('jobseeker')}
-            >
-              Стать исполнителем
-            </Button>
-          </div>
-        </div>
-      </section>
-
-      <footer className="bg-white border-t py-12">
+      <footer className="bg-gray-900 text-white py-12">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                  <Icon name="Zap" size={20} className="text-white" />
+                  <Icon name="Briefcase" size={20} className="text-white" />
                 </div>
-                <h3 className="font-bold text-lg">TaskHub</h3>
+                <h3 className="text-xl font-bold">JobPortal</h3>
               </div>
-              <p className="text-sm text-gray-600">
-                Биржа фриланса для всех видов услуг
+              <p className="text-gray-400">
+                Современная платформа для поиска работы и талантливых специалистов
               </p>
             </div>
+
             <div>
-              <h4 className="font-semibold mb-4">Заказчикам</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-primary transition-colors">Разместить задание</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Найти исполнителя</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Как это работает</a></li>
+              <h4 className="font-bold mb-4">Для соискателей</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">Поиск вакансий</a></li>
+                <li><a href="#" className="hover:text-white">Компании</a></li>
+                <li><a href="#" className="hover:text-white">Карьерные советы</a></li>
               </ul>
             </div>
+
             <div>
-              <h4 className="font-semibold mb-4">Исполнителям</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-primary transition-colors">Найти заказы</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Создать профиль</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Правила работы</a></li>
+              <h4 className="font-bold mb-4">Для работодателей</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li><a href="#" className="hover:text-white">Разместить вакансию</a></li>
+                <li><a href="#" className="hover:text-white">Поиск резюме</a></li>
+                <li><a href="#" className="hover:text-white">Тарифы</a></li>
               </ul>
             </div>
+
             <div>
-              <h4 className="font-semibold mb-4">Компания</h4>
-              <ul className="space-y-2 text-sm text-gray-600">
-                <li><a href="#" className="hover:text-primary transition-colors">О нас</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Помощь</a></li>
-                <li><a href="#" className="hover:text-primary transition-colors">Контакты</a></li>
+              <h4 className="font-bold mb-4">Контакты</h4>
+              <ul className="space-y-2 text-gray-400">
+                <li>Email: info@jobportal.ru</li>
+                <li>Телефон: +7 (495) 123-45-67</li>
+                <li>Адрес: Москва, ул. Примерная, 1</li>
               </ul>
             </div>
           </div>
-          <div className="mt-8 pt-8 border-t text-center text-sm text-gray-500">
-            © 2024 TaskHub. Все права защищены.
+
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
+            <p>© 2025 JobPortal. Все права защищены.</p>
           </div>
         </div>
       </footer>

@@ -1,5 +1,6 @@
 {
-  "auth": "https://functions.poehali.dev/f4961bee-b238-442a-9417-71b671fade9f",
-  "tasks": "https://functions.poehali.dev/bfafe6b0-192e-4071-8f38-b494ac72ffa1",
-  "responses": "https://functions.poehali.dev/8f6102e9-3bb2-4be1-b237-39873fb8c467"
+  "references": "https://functions.poehali.dev/947f9973-1936-4f0f-a7cf-2d8a5c4303e1",
+  "jobs": "https://functions.poehali.dev/e931cd16-cc46-4053-9759-c40fc9140dc1",
+  "users": "https://functions.poehali.dev/a380f7fd-d9c8-4fab-8463-efa282a9e0ed",
+  "applications": "https://functions.poehali.dev/37da3912-60ae-4715-9222-70a2aa962356"
 }

@@ -1,26 +1,26 @@
 {
   "tests": [
     {
-      "name": "Get responses by task",
+      "name": "Get applications for jobseeker",
       "method": "GET",
-      "path": "/?task_id=1",
+      "path": "/?jobseeker_id=1",
       "expectedStatus": 200,
       "expectedBody": [],
       "bodyMatcher": "partial"
     },
     {
-      "name": "Create response",
+      "name": "Create application",
       "method": "POST",
       "path": "/",
       "body": {
-        "task_id": 1,
-        "jobseeker_id": 2,
-        "message": "Test response",
-        "proposed_budget": "20000"
+        "job_id": 1,
+        "jobseeker_id": 1,
+        "cover_letter": "Test cover letter"
       },
       "expectedStatus": 201,
       "expectedBody": {
-        "id": "number"
+        "id": "number",
+        "status": "string"
       },
       "bodyMatcher": "partial"
     }
